@@ -97,11 +97,14 @@ describe("recipe store", () => {
     expect(useRecipeStore.getState().recipes[1]?.id).toBe("recipe_2");
   });
 
-  it("keeps the final recipe when deleteRecipe is called with only one recipe left", () => {
-    useRecipeStore.getState().deleteRecipe("recipe_1");
+  it("resets to a fresh default recipe when deleteRecipe is called with only one recipe left", () => {
+    const oldRecipeId = useRecipeStore.getState().selectedRecipeId;
+    useRecipeStore.getState().deleteRecipe(oldRecipeId);
 
-    expect(useRecipeStore.getState().selectedRecipeId).toBe("recipe_1");
-    expect(useRecipeStore.getState().recipes).toHaveLength(1);
+    const recipes = useRecipeStore.getState().recipes;
+    expect(recipes).toHaveLength(1);
+    expect(recipes[0]?.id).not.toBe(oldRecipeId);
+    expect(useRecipeStore.getState().selectedRecipeId).toBe(recipes[0]?.id);
   });
 
   it("creates recipe state with independent nested settings objects", () => {

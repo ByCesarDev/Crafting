@@ -50,8 +50,7 @@ export const cloneRecipeAndClearInteraction = (id: string) => {
 
 export const deleteRecipeAndClearInteraction = (id: string) => {
   const recipeState = useRecipeStore.getState();
-  const shouldClearInteraction =
-    recipeState.selectedRecipeId === id && recipeState.recipes.length > 1;
+  const shouldClearInteraction = recipeState.selectedRecipeId === id;
 
   if (shouldClearInteraction) {
     useUIStore.getState().clearInteractionState();

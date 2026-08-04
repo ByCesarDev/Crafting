@@ -11,9 +11,10 @@ import { generateUid } from "@/lib/utils";
 
 export interface CustomItemState {
   customItems: CustomItem[];
+  groups: string[];
 }
 
-type CustomItemUpdates = Partial<Pick<CustomItem, "displayName" | "texture">> & {
+type CustomItemUpdates = Partial<Pick<CustomItem, "displayName" | "texture" | "group">> & {
   rawId?: string;
 };
 
@@ -23,17 +24,33 @@ type CustomItemActions = {
     rawId: string;
     texture: string;
     version: MinecraftVersion;
+    group?: string;
   }) => boolean;
   updateCustomItem: (uid: string, updates: CustomItemUpdates) => boolean;
   deleteCustomItem: (uid: string) => void;
+  addGroup: (groupName: string) => void;
+  renameCustomItemGroup: (oldGroupName: string, newGroupName: string) => boolean;
+  deleteCustomItemGroup: (groupName: string) => void;
 };
 
 export const useCustomItemStore = create<CustomItemState & CustomItemActions>()(
   persist(
     immer((set, get) => ({
       customItems: [],
+      groups: [],
 
-      addCustomItem: ({ name, rawId, texture, version }) => {
+      addGroup: (groupName) => {
+        const trimmed = groupName.trim();
+        if (!trimmed || trimmed.toLowerCase() === "general") return;
+        set((state) => {
+          if (!state.groups) state.groups = [];
+          if (!state.groups.includes(trimmed)) {
+            state.groups.push(trimmed);
+          }
+        });
+      },
+
+      addCustomItem: ({ name, rawId, texture, version, group }) => {
         const id = parseMinecraftIdentifierInput(rawId, version);
 
         if (
@@ -42,6 +59,8 @@ export const useCustomItemStore = create<CustomItemState & CustomItemActions>()(
           return false;
         }
 
+        const trimmedGroup = group?.trim() || undefined;
+
         const item: CustomItem = {
           type: "custom_item",
           uid: generateUid("custom-item"),
@@ -49,10 +68,19 @@ export const useCustomItemStore = create<CustomItemState & CustomItemActions>()(
           displayName: name,
           texture: texture || NoTextureTexture,
           _version: version,
+          group: trimmedGroup,
         };
 
         set((state) => {
           state.customItems.push(item);
+          if (!state.groups) state.groups = [];
+          if (
+            trimmedGroup &&
+            trimmedGroup.toLowerCase() !== "general" &&
+            !state.groups.includes(trimmedGroup)
+          ) {
+            state.groups.push(trimmedGroup);
+          }
         });
 
         return true;
@@ -62,12 +90,28 @@ export const useCustomItemStore = create<CustomItemState & CustomItemActions>()(
         let didUpdate = false;
 
         set((state) => {
+          if (!state.groups) state.groups = [];
           const item = state.customItems.find((i) => i.uid === uid);
           if (!item) return;
 
           if (updates.displayName !== undefined && updates.displayName !== item.displayName) {
             item.displayName = updates.displayName;
             didUpdate = true;
+          }
+
+          if (updates.group !== undefined) {
+            const nextGroup = updates.group.trim() || undefined;
+            if (nextGroup !== item.group) {
+              item.group = nextGroup;
+              didUpdate = true;
+              if (
+                nextGroup &&
+                nextGroup.toLowerCase() !== "general" &&
+                !state.groups.includes(nextGroup)
+              ) {
+                state.groups.push(nextGroup);
+              }
+            }
           }
 
           if (updates.texture !== undefined) {
@@ -101,11 +145,56 @@ export const useCustomItemStore = create<CustomItemState & CustomItemActions>()(
           state.customItems = state.customItems.filter((item) => item.uid !== uid);
         });
       },
+
+      renameCustomItemGroup: (oldGroupName, newGroupName) => {
+        const trimmedOld = oldGroupName.trim();
+        const trimmedNew = newGroupName.trim();
+        if (!trimmedOld || !trimmedNew || trimmedOld === trimmedNew) return false;
+
+        let didRename = false;
+        set((state) => {
+          if (!state.groups) state.groups = [];
+          const index = state.groups.indexOf(trimmedOld);
+          if (index !== -1) {
+            state.groups[index] = trimmedNew;
+            didRename = true;
+          } else if (!state.groups.includes(trimmedNew)) {
+            state.groups.push(trimmedNew);
+            didRename = true;
+          }
+
+          for (const item of state.customItems) {
+            const currentGroup = item.group?.trim() || "General";
+            if (currentGroup.toLowerCase() === trimmedOld.toLowerCase()) {
+              item.group = trimmedNew;
+              didRename = true;
+            }
+          }
+        });
+        return didRename;
+      },
+
+      deleteCustomItemGroup: (groupName) => {
+        const trimmed = groupName.trim();
+        set((state) => {
+          if (!state.groups) state.groups = [];
+          state.groups = state.groups.filter((g) => g.toLowerCase() !== trimmed.toLowerCase());
+          for (const item of state.customItems) {
+            const currentGroup = item.group?.trim() || "General";
+            if (currentGroup.toLowerCase() === trimmed.toLowerCase()) {
+              item.group = undefined;
+            }
+          }
+        });
+      },
     })),
     {
       name: "crafting-custom-items",
       version: 0,
-      partialize: (state) => ({ customItems: state.customItems }),
+      partialize: (state) => ({
+        customItems: state.customItems,
+        groups: state.groups,
+      }),
     },
   ),
 );

@@ -1,35 +1,26 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MinecraftVersion, RecipeType } from "@/data/types";
+import { useAlertStore } from "@/stores/alert";
 import { createEmptySlotContext } from "@/stores/recipe/slot-value";
 import { recipeStateDefaults } from "@/stores/recipe/types";
 import { makeRecipe } from "@/test/recipe-fixtures";
 
 import type { GeneratedRecipe } from "@/recipes/generate/types";
 
-const { createBehaviorPackBlob, downloadBlob, generate, getBehaviorPackRecipeFileName } =
-  vi.hoisted(() => ({
-    createBehaviorPackBlob: vi.fn<typeof import("@/data/behavior-pack").createBehaviorPackBlob>(),
-    downloadBlob: vi.fn<typeof import("@/data/datapack").downloadBlob>(),
-    generate: vi.fn<typeof import("@/recipes/generate").generate>(),
-    getBehaviorPackRecipeFileName: vi.fn<
-      typeof import("@/data/behavior-pack").getBehaviorPackRecipeFileName
-    >((identifier: string) => {
-      const sanitized =
-        identifier
-          .trim()
-          .replace(/[:/\\]+/g, "_")
-          .replace(/[^a-zA-Z0-9._-]+/g, "_")
-          .replace(/^_+|_+$/g, "") || "recipe";
-
-      return `${sanitized}.json`;
-    }),
-  }));
-
-vi.mock("@/data/behavior-pack", () => ({
-  createBehaviorPackBlob,
-  getBehaviorPackRecipeFileName,
+const { createBehaviorPackBlob, downloadBlob, generate } = vi.hoisted(() => ({
+  createBehaviorPackBlob: vi.fn<typeof import("@/data/behavior-pack").createBehaviorPackBlob>(),
+  downloadBlob: vi.fn<typeof import("@/data/datapack").downloadBlob>(),
+  generate: vi.fn<typeof import("@/recipes/generate").generate>(),
 }));
+
+vi.mock("@/data/behavior-pack", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/data/behavior-pack")>();
+  return {
+    ...actual,
+    createBehaviorPackBlob,
+  };
+});
 
 vi.mock("@/data/datapack", () => ({
   downloadBlob,
@@ -44,13 +35,9 @@ import { downloadBehaviorPack } from "./behavior-pack";
 let recipeId = 0;
 
 const generatedRecipe = {
-  format_version: "1.20.10",
-  "minecraft:recipe_shapeless": {
-    description: { identifier: "crafting:stone_button" },
-    tags: ["crafting_table"],
-    ingredients: [],
-    result: {},
-  },
+  type: "minecraft:crafting_shapeless",
+  ingredients: [],
+  result: {},
 } satisfies GeneratedRecipe;
 
 const createItem = (raw: string, version = MinecraftVersion.Bedrock) => ({
@@ -80,7 +67,7 @@ const createCraftingRecipe = (
 describe("downloadBehaviorPack", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.stubGlobal("alert", vi.fn());
+    vi.spyOn(useAlertStore.getState(), "showAlert").mockResolvedValue(true);
   });
 
   it("blocks behavior pack download when any recipe is incomplete", async () => {
@@ -97,8 +84,11 @@ describe("downloadBehaviorPack", () => {
     });
 
     expect(result).toEqual({ status: "blocked" });
-    expect(globalThis.alert).toHaveBeenCalledWith(
-      "Please finish all recipes before downloading the behavior pack:\n\n- Crafting Recipe: Add a result item",
+    expect(useAlertStore.getState().showAlert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message:
+          "Please finish all recipes before downloading the behavior pack:\n\n- Crafting Recipe: Add a result item",
+      }),
     );
     expect(generate).not.toHaveBeenCalled();
     expect(createBehaviorPackBlob).not.toHaveBeenCalled();
@@ -124,7 +114,6 @@ describe("downloadBehaviorPack", () => {
     });
 
     expect(result).toEqual({ status: "success" });
-    expect(globalThis.alert).not.toHaveBeenCalled();
     expect(generate).toHaveBeenCalledWith({
       state: recipe,
       version: MinecraftVersion.Bedrock,
@@ -134,12 +123,15 @@ describe("downloadBehaviorPack", () => {
       },
     });
     expect(createBehaviorPackBlob).toHaveBeenCalledWith([
-      { identifier: "crafting:stone_button", json: generatedRecipe },
+      {
+        identifier: "crafting:stone_button",
+        json: generatedRecipe,
+      },
     ]);
     expect(downloadBlob).toHaveBeenCalledWith(blob, "behavior_pack.mcpack");
   });
 
-  it("surfaces generation failures after validation passes", async () => {
+  it("surfaces recipe generation errors during behavior pack generation", async () => {
     const recipe = createCraftingRecipe({
       "crafting.1": createItem("minecraft:stone"),
       "crafting.result": createItem("minecraft:stone_button"),
@@ -158,8 +150,10 @@ describe("downloadBehaviorPack", () => {
     });
 
     expect(result).toEqual({ status: "error" });
-    expect(globalThis.alert).toHaveBeenCalledWith(
-      "Failed to generate all recipes for the behavior pack:\n\n- stone_button: Boom",
+    expect(useAlertStore.getState().showAlert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Failed to generate all recipes for the behavior pack:\n\n- stone_button: Boom",
+      }),
     );
     expect(createBehaviorPackBlob).not.toHaveBeenCalled();
     expect(downloadBlob).not.toHaveBeenCalled();
@@ -185,8 +179,10 @@ describe("downloadBehaviorPack", () => {
     });
 
     expect(result).toEqual({ status: "error" });
-    expect(globalThis.alert).toHaveBeenCalledWith(
-      "Failed to generate the behavior pack:\n\nZip failed",
+    expect(useAlertStore.getState().showAlert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Failed to generate the behavior pack:\n\nZip failed",
+      }),
     );
     expect(downloadBlob).not.toHaveBeenCalled();
   });

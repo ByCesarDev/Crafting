@@ -105,4 +105,41 @@ describe("custom item store", () => {
       false,
     );
   });
+
+  it("supports assigning and updating custom item group / addon folders", () => {
+    useCustomItemStore.getState().addCustomItem({
+      name: "Enderite Sword",
+      rawId: "ed:enderite_sword",
+      texture: "",
+      version: MinecraftVersion.Bedrock,
+      group: "Enderite Mod",
+    });
+
+    const item = useCustomItemStore.getState().customItems[0]!;
+    expect(item.group).toBe("Enderite Mod");
+
+    useCustomItemStore.getState().updateCustomItem(item.uid, {
+      group: "Enderite Weapons",
+    });
+
+    expect(useCustomItemStore.getState().customItems[0]?.group).toBe("Enderite Weapons");
+  });
+
+  it("renames and deletes custom item groups", () => {
+    useCustomItemStore.getState().addCustomItem({
+      name: "Enderite Ingot",
+      rawId: "ed:enderite_ingot",
+      texture: "",
+      version: MinecraftVersion.Bedrock,
+      group: "Enderite Mod",
+    });
+
+    expect(
+      useCustomItemStore.getState().renameCustomItemGroup("Enderite Mod", "Enderite Mod Pack"),
+    ).toBe(true);
+    expect(useCustomItemStore.getState().customItems[0]?.group).toBe("Enderite Mod Pack");
+
+    useCustomItemStore.getState().deleteCustomItemGroup("Enderite Mod Pack");
+    expect(useCustomItemStore.getState().customItems[0]?.group).toBe(undefined);
+  });
 });

@@ -120,3 +120,59 @@
 @utility scrollbar-app {
   @apply scrollbar-thin scrollbar-thumb-mist-400 scrollbar-track-mist-200 hover:scrollbar-thumb-mist-300 active:scrollbar-thumb-mist-300 dark:scrollbar-thumb-mist-600 dark:scrollbar-track-mist-800 dark:hover:scrollbar-thumb-mist-500 dark:active:scrollbar-thumb-mist-500;
 }
+
+@keyframes modalSlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-40px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes modalSlideUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-40px) scale(0.96);
+  }
+}
+
+@keyframes modalBackdropFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes modalBackdropFadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.animate-modal-enter {
+  animation: modalSlideDown 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-modal-exit {
+  animation: modalSlideUp 0.22s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+}
+
+.animate-backdrop-enter {
+  animation: modalBackdropFadeIn 0.25s ease-out forwards;
+}
+
+.animate-backdrop-exit {
+  animation: modalBackdropFadeOut 0.2s ease-in forwards;
+}

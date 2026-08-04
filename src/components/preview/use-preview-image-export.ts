@@ -4,6 +4,7 @@ import { downloadBlob } from "@/data/datapack";
 import { RecipeType } from "@/data/types";
 import { useCurrentRecipeName } from "@/hooks/use-current-recipe-name";
 import { trackPreviewScreenshot } from "@/lib/analytics";
+import { showAlert } from "@/lib/confirm";
 import { getPreviewBaseName, toPreviewFileName } from "@/recipes/naming";
 import { useRecipeStore } from "@/stores/recipe";
 import { selectCurrentRecipeType } from "@/stores/recipe/selectors";
@@ -56,7 +57,7 @@ export function usePreviewImageExport(previewRef: RefObject<HTMLDivElement | nul
       return true;
     } catch (error) {
       console.error("Image generation error", error);
-      window.alert("Could not download preview image.");
+      void showAlert("Could not download preview image.", { variant: "error" });
 
       return false;
     }

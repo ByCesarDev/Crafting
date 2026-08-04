@@ -408,8 +408,19 @@ export const RecipeSidebar = memo(({ collapsed = false, mobile = false }: Recipe
     }
   };
 
-  const handleDeleteRecipe = (id: string, event?: { shiftKey: boolean }) => {
-    if (!confirmAction("Are you sure you want to delete this recipe?", event)) {
+  const handleDeleteRecipe = async (id: string, event?: { shiftKey: boolean }) => {
+    const isOnlyOne = recipes.length <= 1;
+    const confirmMessage = isOnlyOne
+      ? "Are you sure you want to reset this recipe?"
+      : "Are you sure you want to delete this recipe?";
+
+    const confirmed = await confirmAction(confirmMessage, event, {
+      title: isOnlyOne ? "Reset Recipe" : "Delete Recipe",
+      variant: "destructive",
+      confirmText: isOnlyOne ? "Reset" : "Delete",
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -418,9 +429,9 @@ export const RecipeSidebar = memo(({ collapsed = false, mobile = false }: Recipe
 
     if (recipe) {
       trackRecipeAction({
-        action: "delete",
+        action: isOnlyOne ? "reset" : "delete",
         minecraft_version: minecraftVersion,
-        recipe_count: recipes.length - 1,
+        recipe_count: isOnlyOne ? 1 : recipes.length - 1,
         recipe_type: recipe.recipeType,
       });
     }
@@ -577,7 +588,7 @@ export const RecipeSidebar = memo(({ collapsed = false, mobile = false }: Recipe
             key={row.recipe.id}
             row={row}
             mobile={mobile}
-            canDelete={recipes.length > 1}
+            canDelete={true}
             onSelectRecipe={handleSelectRecipe}
             onCloneRecipe={handleCloneRecipe}
             onDeleteRecipe={handleDeleteRecipe}

@@ -1,6 +1,7 @@
 import { getBehaviorPackRecipeFileName } from "@/data/behavior-pack";
 import { downloadBlob } from "@/data/datapack";
 import { MinecraftVersion } from "@/data/types";
+import { showAlert } from "@/lib/confirm";
 import {
   bedrockIdentifierHint,
   isValidBedrockNamespacedIdentifier,
@@ -30,12 +31,17 @@ export const downloadRecipeJson = ({
       recipe.bedrock.identifierMode === "manual" &&
       sanitizeRecipeName(recipe.bedrock.identifierName).length === 0
     ) {
-      alert("Add a Bedrock name before downloading JSON.");
+      void showAlert("Add a Bedrock name before downloading JSON.", { variant: "warning" });
       return { status: "blocked" };
     }
 
     if (!isValidBedrockNamespacedIdentifier(target)) {
-      alert(`Use a valid Bedrock identifier before downloading JSON (${bedrockIdentifierHint}).`);
+      void showAlert(
+        `Use a valid Bedrock identifier before downloading JSON (${bedrockIdentifierHint}).`,
+        {
+          variant: "warning",
+        },
+      );
       return { status: "blocked" };
     }
 
@@ -43,7 +49,7 @@ export const downloadRecipeJson = ({
     generationContext = { bedrockIdentifier: target };
   } else {
     if (recipe.nameMode === "manual" && sanitizeRecipeName(recipe.name).length === 0) {
-      alert("Add a file name before downloading JSON.");
+      void showAlert("Add a file name before downloading JSON.", { variant: "warning" });
       return { status: "blocked" };
     }
   }
@@ -61,7 +67,12 @@ export const downloadRecipeJson = ({
     downloadBlob(blob, fileName);
     return { status: "success" };
   } catch (error) {
-    alert(error instanceof Error ? error.message : "Could not generate JSON for this recipe.");
+    void showAlert(
+      error instanceof Error ? error.message : "Could not generate JSON for this recipe.",
+      {
+        variant: "error",
+      },
+    );
     return { status: "error" };
   }
 };

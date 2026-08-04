@@ -1,6 +1,7 @@
 import { createDatapackBlob, downloadBlob } from "@/data/datapack";
 import { Tag } from "@/data/models/types";
 import { MinecraftVersion } from "@/data/types";
+import { showAlert } from "@/lib/confirm";
 import { generate } from "@/recipes/generate";
 import { NamingContext, resolveRecipeNames } from "@/recipes/naming";
 import { Recipe, SlotContext } from "@/stores/recipe/types";
@@ -22,12 +23,14 @@ export const downloadDatapack = async (
 ): Promise<DownloadResult> => {
   const { tags, context, slotContext } = options;
   if (version === MinecraftVersion.Bedrock) {
-    alert("Datapack export is only available for Java versions.");
+    void showAlert("Datapack export is only available for Java versions.", { variant: "warning" });
     return { status: "blocked" };
   }
 
   if (version === MinecraftVersion.V112) {
-    alert("Datapack export is only available for Java 1.13 and newer.");
+    void showAlert("Datapack export is only available for Java 1.13 and newer.", {
+      variant: "warning",
+    });
     return { status: "blocked" };
   }
 
@@ -39,8 +42,9 @@ export const downloadDatapack = async (
   }).map((recipe) => `${recipe.name}: ${recipe.errors.join(", ")}`);
 
   if (invalidRecipes.length > 0) {
-    alert(
+    void showAlert(
       `Please finish all recipes before downloading the datapack:\n\n- ${invalidRecipes.join("\n- ")}`,
+      { title: "Export Warning", variant: "warning" },
     );
     return { status: "blocked" };
   }
@@ -66,7 +70,13 @@ export const downloadDatapack = async (
   }
 
   if (invalidRecipes.length > 0) {
-    alert(`Failed to generate all recipes for the datapack:\n\n- ${invalidRecipes.join("\n- ")}`);
+    void showAlert(
+      `Failed to generate all recipes for the datapack:\n\n- ${invalidRecipes.join("\n- ")}`,
+      {
+        title: "Export Error",
+        variant: "error",
+      },
+    );
     return { status: "error" };
   }
 
@@ -75,8 +85,9 @@ export const downloadDatapack = async (
     downloadBlob(blob, "datapack.zip");
     return { status: "success" };
   } catch (error) {
-    alert(
+    void showAlert(
       `Failed to generate the datapack:\n\n${error instanceof Error ? error.message : "Unknown error"}`,
+      { title: "Export Error", variant: "error" },
     );
     return { status: "error" };
   }

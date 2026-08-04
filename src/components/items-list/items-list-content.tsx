@@ -14,9 +14,13 @@ interface ItemsListContentProps {
   expandedTagUid: string | null;
   setExpandedTagUid: Dispatch<SetStateAction<string | null>>;
   showAddItemForm: boolean;
+  showAddAddonForm?: boolean;
   showAddTagForm: boolean;
   onCloseAddItemForm: () => void;
+  onCloseAddAddonForm?: () => void;
   onCloseAddTagForm: () => void;
+  onOpenAddItemForm?: () => void;
+  onOpenAddAddonForm?: () => void;
   supportsCustomTags: boolean;
 }
 
@@ -28,9 +32,13 @@ export const ItemsListContent = ({
   expandedTagUid,
   setExpandedTagUid,
   showAddItemForm,
+  showAddAddonForm,
   showAddTagForm,
   onCloseAddItemForm,
+  onCloseAddAddonForm,
   onCloseAddTagForm,
+  onOpenAddItemForm,
+  onOpenAddAddonForm,
   supportsCustomTags,
 }: ItemsListContentProps) => {
   const { resources } = useResourcesForVersion();
@@ -54,7 +62,11 @@ export const ItemsListContent = ({
           search={search}
           items={items}
           showAddItemForm={showAddItemForm}
+          showAddAddonForm={showAddAddonForm}
           onCloseAddItemForm={onCloseAddItemForm}
+          onCloseAddAddonForm={onCloseAddAddonForm}
+          onOpenAddItemForm={onOpenAddItemForm}
+          onOpenAddAddonForm={onOpenAddAddonForm}
         />
       )}
     </div>

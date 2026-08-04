@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
+import { AlertDialogContainer } from "../dialog/alert-dialog-container";
 import { Footer } from "../footer";
 import { Header } from "./header";
 import { HelpDialog } from "./help-dialog";
@@ -61,6 +62,7 @@ export function AppShell({
         onHelpClick={() => setHelpOpen(true)}
       />
       {showHelp ? <HelpDialog open={isHelpOpen} onClose={closeHelp} /> : null}
+      <AlertDialogContainer />
       {children}
       {footer}
     </div>

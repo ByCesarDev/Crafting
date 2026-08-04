@@ -223,7 +223,7 @@ describe("editor actions", () => {
     expect(useUIStore.getState().lastPlacedSlot).toBe(SLOTS.crafting.slot1);
   });
 
-  it("preserves interaction state when deleting the final remaining recipe", () => {
+  it("resets recipe and clears interaction state when deleting the final remaining recipe", () => {
     useRecipeStore.setState((state) => ({
       ...state,
       recipes: [createRecipe("recipe-1")],
@@ -234,11 +234,8 @@ describe("editor actions", () => {
     deleteRecipeAndClearInteraction("recipe-1");
 
     expect(useRecipeStore.getState().recipes).toHaveLength(1);
-    expect(useRecipeStore.getState().selectedRecipeId).toBe("recipe-1");
-    expect(useUIStore.getState().selection).toEqual({
-      type: "ingredient",
-      item: ingredientItem,
-    });
-    expect(useUIStore.getState().lastPlacedSlot).toBe(SLOTS.crafting.slot1);
+    expect(useRecipeStore.getState().selectedRecipeId).not.toBe("recipe-1");
+    expect(useUIStore.getState().selection).toBeUndefined();
+    expect(useUIStore.getState().lastPlacedSlot).toBeUndefined();
   });
 });

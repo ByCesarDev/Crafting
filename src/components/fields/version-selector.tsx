@@ -1,6 +1,7 @@
 import { MinecraftVersionSelect } from "@/components/fields/minecraft-version-select";
 import { MinecraftVersion } from "@/data/types";
 import { trackMinecraftVersionChange } from "@/lib/analytics";
+import { showConfirm } from "@/lib/confirm";
 import { useRecipeStore } from "@/stores/recipe";
 import { useSettingsStore } from "@/stores/settings";
 import { selectMinecraftVersion } from "@/stores/settings/selectors";
@@ -12,7 +13,7 @@ export const VersionSelector = () => {
   const clearAllSlots = useRecipeStore((state) => state.clearAllSlots);
   const clearInteractionState = useUIStore((state) => state.clearInteractionState);
 
-  const handleVersionChange = (nextVersion: MinecraftVersion) => {
+  const handleVersionChange = async (nextVersion: MinecraftVersion) => {
     if (nextVersion === minecraftVersion) {
       return;
     }
@@ -22,8 +23,13 @@ export const VersionSelector = () => {
       (minecraftVersion !== MinecraftVersion.Bedrock && nextVersion === MinecraftVersion.Bedrock);
 
     if (switchingCrossPlatform) {
-      const confirmed = confirm(
+      const confirmed = await showConfirm(
         "Switching between Java and Bedrock will clear item slots for all recipes. Continue?",
+        {
+          title: "Switch Minecraft Version",
+          variant: "warning",
+          confirmText: "Switch Version",
+        },
       );
 
       if (!confirmed) {

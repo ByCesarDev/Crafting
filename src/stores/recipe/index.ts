@@ -99,12 +99,15 @@ export const useRecipeStore = create<ImmerState>()(
         },
         deleteRecipe: (id) => {
           set((state) => {
-            if (state.recipes.length <= 1) {
+            const index = state.recipes.findIndex((recipe) => recipe.id === id);
+            if (index < 0) {
               return;
             }
 
-            const index = state.recipes.findIndex((recipe) => recipe.id === id);
-            if (index < 0) {
+            if (state.recipes.length <= 1) {
+              const defaultRecipe = createDefaultRecipe();
+              state.recipes[0] = defaultRecipe;
+              state.selectedRecipeId = defaultRecipe.id;
               return;
             }
 

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MinecraftVersion, RecipeType } from "@/data/types";
+import { useAlertStore } from "@/stores/alert";
 import { createEmptySlotContext } from "@/stores/recipe/slot-value";
 import { recipeStateDefaults } from "@/stores/recipe/types";
 import { makeRecipe } from "@/test/recipe-fixtures";
@@ -59,7 +60,7 @@ const createCraftingRecipe = (
 describe("downloadDatapack", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.stubGlobal("alert", vi.fn());
+    vi.spyOn(useAlertStore.getState(), "showAlert").mockResolvedValue(true);
   });
 
   it("blocks datapack download on Java 1.12", async () => {
@@ -76,8 +77,10 @@ describe("downloadDatapack", () => {
     });
 
     expect(result).toEqual({ status: "blocked" });
-    expect(globalThis.alert).toHaveBeenCalledWith(
-      "Datapack export is only available for Java 1.13 and newer.",
+    expect(useAlertStore.getState().showAlert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Datapack export is only available for Java 1.13 and newer.",
+      }),
     );
     expect(generate).not.toHaveBeenCalled();
     expect(createDatapackBlob).not.toHaveBeenCalled();
@@ -97,8 +100,11 @@ describe("downloadDatapack", () => {
     });
 
     expect(result).toEqual({ status: "blocked" });
-    expect(globalThis.alert).toHaveBeenCalledWith(
-      "Please finish all recipes before downloading the datapack:\n\n- Crafting Recipe: Add a result item",
+    expect(useAlertStore.getState().showAlert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message:
+          "Please finish all recipes before downloading the datapack:\n\n- Crafting Recipe: Add a result item",
+      }),
     );
     expect(generate).not.toHaveBeenCalled();
     expect(createDatapackBlob).not.toHaveBeenCalled();
@@ -123,7 +129,6 @@ describe("downloadDatapack", () => {
     });
 
     expect(result).toEqual({ status: "success" });
-    expect(globalThis.alert).not.toHaveBeenCalled();
     expect(generate).toHaveBeenCalledWith({
       state: recipe,
       version: MinecraftVersion.V121,
@@ -131,13 +136,18 @@ describe("downloadDatapack", () => {
     });
     expect(createDatapackBlob).toHaveBeenCalledWith(
       MinecraftVersion.V121,
-      [{ name: "stone_button", json: generatedRecipe }],
+      [
+        {
+          name: "stone_button",
+          json: generatedRecipe,
+        },
+      ],
       [],
     );
     expect(downloadBlob).toHaveBeenCalledWith(blob, "datapack.zip");
   });
 
-  it("surfaces generation failures after validation passes", async () => {
+  it("surfaces recipe generation errors during datapack generation", async () => {
     const recipe = createCraftingRecipe({
       "crafting.1": createItem("minecraft:stone"),
       "crafting.result": createItem("minecraft:stone_button"),
@@ -155,8 +165,10 @@ describe("downloadDatapack", () => {
     });
 
     expect(result).toEqual({ status: "error" });
-    expect(globalThis.alert).toHaveBeenCalledWith(
-      "Failed to generate all recipes for the datapack:\n\n- stone_button: Boom",
+    expect(useAlertStore.getState().showAlert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Failed to generate all recipes for the datapack:\n\n- stone_button: Boom",
+      }),
     );
     expect(createDatapackBlob).not.toHaveBeenCalled();
     expect(downloadBlob).not.toHaveBeenCalled();
@@ -181,7 +193,11 @@ describe("downloadDatapack", () => {
     });
 
     expect(result).toEqual({ status: "error" });
-    expect(globalThis.alert).toHaveBeenCalledWith("Failed to generate the datapack:\n\nZip failed");
+    expect(useAlertStore.getState().showAlert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Failed to generate the datapack:\n\nZip failed",
+      }),
+    );
     expect(downloadBlob).not.toHaveBeenCalled();
   });
 });

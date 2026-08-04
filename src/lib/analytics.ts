@@ -7,7 +7,7 @@ type ColorScheme = "light" | "dark";
 type Theme = ColorScheme | "system";
 type PointerType = "coarse" | "fine";
 type CustomContentAction = "create" | "update" | "delete";
-type RecipeAction = "create" | "clone" | "delete" | "clear";
+type RecipeAction = "create" | "clone" | "delete" | "clear" | "reset";
 type RecipeStartInputMethod = "drag" | "tap";
 
 export type AnalyticsContext = {

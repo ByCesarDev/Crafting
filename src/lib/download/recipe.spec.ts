@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MinecraftVersion, RecipeType } from "@/data/types";
+import { useAlertStore } from "@/stores/alert";
 import { createEmptySlotContext } from "@/stores/recipe/slot-value";
 import { recipeStateDefaults } from "@/stores/recipe/types";
 import { makeRecipe } from "@/test/recipe-fixtures";
@@ -76,7 +77,7 @@ const createCraftingRecipe = (
 describe("downloadRecipeJson", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.stubGlobal("alert", vi.fn());
+    vi.spyOn(useAlertStore.getState(), "showAlert").mockResolvedValue(true);
   });
 
   it("blocks Java download when a manual file name is blank", () => {
@@ -97,7 +98,9 @@ describe("downloadRecipeJson", () => {
     });
 
     expect(result).toEqual({ status: "blocked" });
-    expect(globalThis.alert).toHaveBeenCalledWith("Add a file name before downloading JSON.");
+    expect(useAlertStore.getState().showAlert).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "Add a file name before downloading JSON." }),
+    );
     expect(generate).not.toHaveBeenCalled();
     expect(downloadBlob).not.toHaveBeenCalled();
   });
@@ -148,7 +151,9 @@ describe("downloadRecipeJson", () => {
     });
 
     expect(result).toEqual({ status: "blocked" });
-    expect(globalThis.alert).toHaveBeenCalledWith("Add a Bedrock name before downloading JSON.");
+    expect(useAlertStore.getState().showAlert).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "Add a Bedrock name before downloading JSON." }),
+    );
     expect(generate).not.toHaveBeenCalled();
     expect(createBehaviorPackBlob).not.toHaveBeenCalled();
     expect(downloadBlob).not.toHaveBeenCalled();

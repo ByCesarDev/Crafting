@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 
 import { ArrowLeftIcon } from "lucide-react";
 
+import { Select } from "@/components/ui/select";
 import { trackCustomItem } from "@/lib/analytics";
 import {
   bedrockIdentifierHint,
@@ -18,14 +19,27 @@ import { Slot } from "../../slot/slot";
 
 interface AddItemFormProps {
   onClose: () => void;
+  initialGroup?: string;
+  availableGroups?: string[];
 }
 
-export const AddItemForm = ({ onClose }: AddItemFormProps) => {
+export const AddItemForm = ({ onClose, initialGroup, availableGroups }: AddItemFormProps) => {
   const minecraftVersion = useSettingsStore(selectMinecraftVersion);
   const addCustomItem = useCustomItemStore((state) => state.addCustomItem);
+  const customItems = useCustomItemStore((state) => state.customItems);
+  const storeGroups = useCustomItemStore((state) => state.groups) ?? [];
+
+  const existingGroups = Array.from(
+    new Set([
+      ...storeGroups,
+      ...(availableGroups ?? []),
+      ...customItems.map((item) => item.group).filter((g): g is string => Boolean(g)),
+    ]),
+  ).filter((g) => g.trim().toLowerCase() !== "general" && g.trim() !== "");
 
   const [name, setName] = useState("");
   const [itemId, setItemId] = useState("");
+  const [group, setGroup] = useState(initialGroup ?? "");
   const [texture, setTexture] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -45,7 +59,13 @@ export const AddItemForm = ({ onClose }: AddItemFormProps) => {
   const handleAdd = () => {
     if (!name.trim() || !isValidNamespacedIdentifier(itemId, minecraftVersion)) return;
 
-    const didCreate = addCustomItem({ name, rawId: itemId, texture, version: minecraftVersion });
+    const didCreate = addCustomItem({
+      name,
+      rawId: itemId,
+      texture,
+      version: minecraftVersion,
+      group: group.trim() || undefined,
+    });
 
     if (didCreate) {
       trackCustomItem({ action: "create", has_texture: texture.length > 0 });
@@ -53,6 +73,7 @@ export const AddItemForm = ({ onClose }: AddItemFormProps) => {
 
     setName("");
     setItemId("");
+    setGroup("");
     setTexture("");
     onClose();
 
@@ -69,6 +90,8 @@ export const AddItemForm = ({ onClose }: AddItemFormProps) => {
       ? `Use namespace:name (${bedrockIdentifierHint})`
       : javaNamespacedIdentifierHint;
 
+  const groupTerm = minecraftVersion === "bedrock" ? "Addon" : "Mod";
+
   return (
     <div className="flex flex-1 flex-col gap-3">
       <div className="flex items-center gap-3">
@@ -83,6 +106,18 @@ export const AddItemForm = ({ onClose }: AddItemFormProps) => {
       </div>
 
       <div className="grid gap-2 sm:grid-cols-2">
+        <label className="text-muted-foreground flex flex-col gap-1 text-xs sm:col-span-2">
+          {groupTerm} / Group
+          <Select value={group} onChange={(e) => setGroup(e.target.value)}>
+            <option value="">General / Unassigned</option>
+            {existingGroups.map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
+          </Select>
+        </label>
+
         <label className="text-muted-foreground flex flex-col gap-1 text-xs">
           Name
           <input
@@ -141,7 +176,7 @@ export const AddItemForm = ({ onClose }: AddItemFormProps) => {
         type="button"
         disabled={!canAdd}
         onClick={handleAdd}
-        className="border-border text-foreground hover:bg-accent cursor-pointer rounded-md border px-3 py-2 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+        className="bg-primary text-primary-foreground hover:bg-primary/90 border-primary cursor-pointer rounded-md border px-3 py-2 text-xs font-medium shadow-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50"
       >
         Create Item
       </button>

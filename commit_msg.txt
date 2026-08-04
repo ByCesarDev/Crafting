@@ -1,0 +1,23 @@
+feat(ui): add folder organization, persistent addon groups, explicit saving, and animated modals
+
+Summary of changes:
+
+1. Addon / Mod Folder Organization:
+   - Added folder/group support for custom items ("Addons" in Bedrock / "Mods" in Java).
+   - Integrated folder card view with item counts and navigation header.
+   - Added inline folder editing (rename folders, delete folders with fallback to General).
+   - Added persistent store state for empty and populated folders in localStorage.
+   - Fixed dropdown select lists in Add Item / Edit Item forms to include all folders.
+
+2. Explicit Item Saving & Theme Styling:
+   - Replaced auto-save on blur with an explicit "Save Changes" button in custom item editor.
+   - Updated all primary action buttons (Create Item, Create Folder, Save Changes) to use the signature theme green (`bg-primary`).
+
+3. Animated Alert & Confirm Modals:
+   - Replaced all native browser alert() and confirm() dialogs with a global modal system.
+   - Added custom entrance (slide down) and exit (slide up) animations.
+   - Handled confirmation dialogs for recipe deletion, version switching, and export warnings.
+
+4. Bug Fixes & UX:
+   - Allowed resetting the final remaining recipe when deleting instead of prohibiting action.
+   - Removed duplicate "General" entries from group selects.
