@@ -45,6 +45,7 @@ type RecipeActions = {
   setRecipeBedrockPriority: (priority: number) => void;
   removeMatchingSlotValues: (match: (value: RecipeSlotValue) => boolean) => void;
   clearAllSlots: () => void;
+  importRecipes: (newRecipes?: Recipe[]) => number;
 };
 
 type ImmerState = RecipeState & RecipeActions;
@@ -65,6 +66,24 @@ export const useRecipeStore = create<ImmerState>()(
       return {
         recipes: [initialRecipe],
         selectedRecipeId: initialRecipe.id,
+
+        importRecipes: (newRecipes) => {
+          let importedCount = 0;
+          if (!Array.isArray(newRecipes)) return 0;
+
+          set((state) => {
+            for (const recipe of newRecipes) {
+              if (!recipe || !recipe.id) continue;
+              const exists = state.recipes.some((existing) => existing.id === recipe.id);
+              if (!exists) {
+                state.recipes.push(recipe);
+                importedCount++;
+              }
+            }
+          });
+
+          return importedCount;
+        },
 
         selectRecipe: (id) => {
           set((state) => {

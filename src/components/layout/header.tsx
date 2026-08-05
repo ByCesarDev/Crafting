@@ -4,6 +4,7 @@ import { Link, type LinkProps } from "@tanstack/react-router";
 import { CircleHelpIcon } from "lucide-react";
 
 import { ResourceIcon } from "@/components/item/resource-icon";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { RecipeType } from "@/data/types";
 import { getRecipeTypeIconItemId } from "@/recipes/definitions";
 
@@ -63,6 +64,7 @@ export function Header({
             </button>
           ) : null}
           {versionSelector}
+          <ThemeToggle />
         </div>
       </div>
     </header>

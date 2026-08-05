@@ -31,6 +31,7 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "theme-color", content: "#262626" },
+      { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black" },
       { name: "viewport", content: "width=device-width, initial-scale=1.0" },
@@ -91,7 +92,7 @@ gtag("config", "G-BZ61P6Z37L", { send_page_view: false });
           }}
         />
       </head>
-      <body className="bg-background font-sans">
+      <body className="bg-background font-sans" suppressHydrationWarning>
         {children}
         <Scripts />
       </body>

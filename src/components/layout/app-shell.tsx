@@ -53,7 +53,9 @@ export function AppShell({
   };
 
   return (
-    <div className={cn("bg-background text-foreground flex flex-col", className)}>
+    <div
+      className={cn("bg-background text-foreground flex h-svh flex-col justify-between", className)}
+    >
       <Header
         title={title}
         navLink={navLink}
@@ -63,7 +65,7 @@ export function AppShell({
       />
       {showHelp ? <HelpDialog open={isHelpOpen} onClose={closeHelp} /> : null}
       <AlertDialogContainer />
-      {children}
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>
       {footer}
     </div>
   );

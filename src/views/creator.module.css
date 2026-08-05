@@ -23,11 +23,8 @@
 
 .frame {
   @apply mx-auto grid min-h-0 w-full max-w-(--app-max-width) flex-1 overflow-hidden px-0;
-  grid-template-areas:
-    "content"
-    "items";
-  grid-template-rows: minmax(0, 1fr) auto;
-  height: calc(100svh - var(--app-header-height));
+  grid-template-areas: "content";
+  grid-template-rows: minmax(0, 1fr);
 }
 
 .recipe-column {
@@ -40,6 +37,7 @@
   grid-area: content;
   overscroll-behavior-y: contain;
   padding: 0.5rem;
+  padding-bottom: calc(0.5rem + 3rem); /* Space for collapsed tray */
 }
 
 .content-body {
@@ -55,16 +53,21 @@
 }
 
 .items-column {
-  @apply bg-card border-border/70 flex min-h-0 min-w-0 flex-col overflow-hidden rounded-t-2xl border-t;
-  grid-area: items;
+  @apply bg-card border-border/70 flex flex-col overflow-hidden rounded-t-2xl border-t fixed inset-x-0 bottom-0 z-40 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)];
+  height: 80svh;
+  transform: translateY(calc(100% - 2.75rem + var(--drag-y, 0px)));
 }
 
 .items-column-expanded {
-  max-height: var(--mobile-tray-height-expanded);
+  transform: translateY(calc(100% - var(--mobile-tray-height-expanded) + var(--drag-y, 0px)));
+}
+
+.items-column-full {
+  transform: translateY(calc(0px + var(--drag-y, 0px)));
 }
 
 .tray-toggle {
-  @apply border-border/70 text-foreground flex cursor-pointer items-center justify-center gap-1 border-b px-4 py-2 text-center text-sm font-semibold transition-colors duration-150;
+  @apply border-border/70 text-foreground flex cursor-grab flex-col items-center justify-center gap-0.5 border-b px-4 py-2 text-center text-sm font-semibold transition-colors duration-150 active:cursor-grabbing touch-none select-none;
 
   &:hover {
     @apply bg-muted/50;
@@ -124,8 +127,9 @@
   }
 
   .items-column-collapsed,
-  .items-column-expanded {
-    @apply max-h-none;
+  .items-column-expanded,
+  .items-column-full {
+    @apply max-h-none transition-none;
   }
 
   .tray-toggle {
@@ -147,7 +151,6 @@
     @apply flex-1 overflow-visible;
     grid-template-areas: "recipes content items";
     grid-template-rows: minmax(0, 1fr);
-    height: calc(100svh - var(--app-header-height));
     min-height: 0;
   }
 
@@ -163,7 +166,7 @@
   .items-column {
     @apply static mt-0 self-auto overflow-visible border-0;
     height: auto;
-  }
+    }
 
   .desktop-expanded {
     grid-template-columns:
@@ -187,7 +190,7 @@
 /* 64rem = --breakpoint-lg, 70rem = 1120px viewport-height trigger for 920px frame */
 @media (width >= 64rem) and (height >= 70rem) {
   .shell {
-    @apply h-auto min-h-0 overflow-visible;
+    @apply min-h-screen overflow-visible;
   }
 
   .frame {

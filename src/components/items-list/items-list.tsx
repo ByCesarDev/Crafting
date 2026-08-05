@@ -1,7 +1,8 @@
 import { useDeferredValue, useState } from "react";
 
-import { FolderPlusIcon, PlusIcon } from "lucide-react";
+import { FolderPlusIcon, HardDriveIcon, PlusIcon } from "lucide-react";
 
+import { BackupModal } from "@/components/backup/backup-modal";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/stores/settings";
 import { selectMinecraftVersion } from "@/stores/settings/selectors";
@@ -24,6 +25,7 @@ export const ItemsList = () => {
   const [showAddItemForm, setShowAddItemForm] = useState(false);
   const [showAddAddonForm, setShowAddAddonForm] = useState(false);
   const [showAddTagForm, setShowAddTagForm] = useState(false);
+  const [isBackupOpen, setIsBackupOpen] = useState(false);
   const clearInteractionState = useUIStore((state) => state.clearInteractionState);
 
   const tab: "items" | "tags" = !supportsTags && activeTab === "tags" ? "items" : activeTab;
@@ -105,29 +107,42 @@ export const ItemsList = () => {
 
         {!isCreating && tabSwitcher}
 
-        {!isCreating && showCreateButton && (
+        {!isCreating && (
           <div className="flex items-center gap-1">
-            {tab === "items" && (
-              <button
-                type="button"
-                className="border-border hover:bg-accent flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md border transition-colors"
-                onClick={() => {
-                  setShowAddAddonForm(true);
-                  setShowAddItemForm(false);
-                }}
-                title={`Add ${addonOrModLabel} folder`}
-              >
-                <FolderPlusIcon size={14} />
-              </button>
-            )}
             <button
               type="button"
               className="border-border hover:bg-accent flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md border transition-colors"
-              onClick={handleCreateAction}
-              title={tab === "items" ? "Add custom item" : "New tag"}
+              onClick={() => setIsBackupOpen(true)}
+              title="Import / Export Backup"
             >
-              <PlusIcon size={14} />
+              <HardDriveIcon size={14} />
             </button>
+
+            {showCreateButton && (
+              <>
+                {tab === "items" && (
+                  <button
+                    type="button"
+                    className="border-border hover:bg-accent flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md border transition-colors"
+                    onClick={() => {
+                      setShowAddAddonForm(true);
+                      setShowAddItemForm(false);
+                    }}
+                    title={`Add ${addonOrModLabel} folder`}
+                  >
+                    <FolderPlusIcon size={14} />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="border-border hover:bg-accent flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md border transition-colors"
+                  onClick={handleCreateAction}
+                  title={tab === "items" ? "Add custom item" : "New tag"}
+                >
+                  <PlusIcon size={14} />
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -135,29 +150,43 @@ export const ItemsList = () => {
       <div className="hidden items-center gap-2 md:flex">
         {tabSwitcher ?? <span className="text-foreground text-sm font-medium">Items</span>}
 
-        {!isCreating && showCreateButton && (
+        {!isCreating && (
           <div className="ml-auto flex items-center gap-1.5">
-            {tab === "items" && (
-              <button
-                type="button"
-                className="border-border text-foreground hover:bg-accent flex shrink-0 cursor-pointer items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors"
-                onClick={() => {
-                  setShowAddAddonForm(true);
-                  setShowAddItemForm(false);
-                }}
-              >
-                <FolderPlusIcon size={14} />
-                Add {addonOrModLabel}
-              </button>
-            )}
             <button
               type="button"
               className="border-border text-foreground hover:bg-accent flex shrink-0 cursor-pointer items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors"
-              onClick={handleCreateAction}
+              onClick={() => setIsBackupOpen(true)}
+              title="Import or Export all data"
             >
-              <PlusIcon size={14} />
-              {tab === "items" ? "Add Item" : "New Tag"}
+              <HardDriveIcon size={14} />
+              Backup / Sync
             </button>
+
+            {showCreateButton && (
+              <>
+                {tab === "items" && (
+                  <button
+                    type="button"
+                    className="border-border text-foreground hover:bg-accent flex shrink-0 cursor-pointer items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors"
+                    onClick={() => {
+                      setShowAddAddonForm(true);
+                      setShowAddItemForm(false);
+                    }}
+                  >
+                    <FolderPlusIcon size={14} />
+                    Add {addonOrModLabel}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="border-border text-foreground hover:bg-accent flex shrink-0 cursor-pointer items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors"
+                  onClick={handleCreateAction}
+                >
+                  <PlusIcon size={14} />
+                  {tab === "items" ? "Add Item" : "New Tag"}
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -196,6 +225,7 @@ export const ItemsList = () => {
         }}
         supportsCustomTags={canCreateTags}
       />
+      <BackupModal open={isBackupOpen} onClose={() => setIsBackupOpen(false)} />
     </div>
   );
 };

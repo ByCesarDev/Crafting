@@ -30,7 +30,11 @@ type CustomItemActions = {
   deleteCustomItem: (uid: string) => void;
   addGroup: (groupName: string) => void;
   renameCustomItemGroup: (oldGroupName: string, newGroupName: string) => boolean;
-  deleteCustomItemGroup: (groupName: string) => void;
+  deleteCustomItemGroup: (groupName: string, deleteItems?: boolean) => void;
+  importCustomItemsAndGroups: (
+    items?: CustomItem[],
+    groups?: string[],
+  ) => { importedItems: number; importedGroups: number };
 };
 
 export const useCustomItemStore = create<CustomItemState & CustomItemActions>()(
@@ -38,6 +42,54 @@ export const useCustomItemStore = create<CustomItemState & CustomItemActions>()(
     immer((set, get) => ({
       customItems: [],
       groups: [],
+
+      importCustomItemsAndGroups: (newItems, newGroups) => {
+        let importedItems = 0;
+        let importedGroups = 0;
+
+        set((state) => {
+          if (!state.groups) state.groups = [];
+
+          if (Array.isArray(newGroups)) {
+            for (const group of newGroups) {
+              const trimmed = group.trim();
+              if (
+                trimmed &&
+                trimmed.toLowerCase() !== "general" &&
+                !state.groups.includes(trimmed)
+              ) {
+                state.groups.push(trimmed);
+                importedGroups++;
+              }
+            }
+          }
+
+          if (Array.isArray(newItems)) {
+            for (const item of newItems) {
+              if (!item || !item.id) continue;
+              const itemKey = identifierUniqueKey(item.id);
+              const exists = state.customItems.some(
+                (existing) => identifierUniqueKey(existing.id) === itemKey,
+              );
+
+              if (!exists) {
+                state.customItems.push(item);
+                importedItems++;
+
+                if (
+                  item.group &&
+                  item.group.toLowerCase() !== "general" &&
+                  !state.groups.includes(item.group)
+                ) {
+                  state.groups.push(item.group);
+                }
+              }
+            }
+          }
+        });
+
+        return { importedItems, importedGroups };
+      },
 
       addGroup: (groupName) => {
         const trimmed = groupName.trim();
@@ -174,15 +226,21 @@ export const useCustomItemStore = create<CustomItemState & CustomItemActions>()(
         return didRename;
       },
 
-      deleteCustomItemGroup: (groupName) => {
+      deleteCustomItemGroup: (groupName, deleteItems = false) => {
         const trimmed = groupName.trim();
         set((state) => {
           if (!state.groups) state.groups = [];
           state.groups = state.groups.filter((g) => g.toLowerCase() !== trimmed.toLowerCase());
-          for (const item of state.customItems) {
-            const currentGroup = item.group?.trim() || "General";
-            if (currentGroup.toLowerCase() === trimmed.toLowerCase()) {
-              item.group = undefined;
+          if (deleteItems) {
+            state.customItems = state.customItems.filter(
+              (item) => (item.group?.trim() || "General").toLowerCase() !== trimmed.toLowerCase(),
+            );
+          } else {
+            for (const item of state.customItems) {
+              const currentGroup = item.group?.trim() || "General";
+              if (currentGroup.toLowerCase() === trimmed.toLowerCase()) {
+                item.group = undefined;
+              }
             }
           }
         });

@@ -1,8 +1,16 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { ArrowLeftIcon, FolderIcon, FolderPlusIcon, PencilIcon, PlusIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  DownloadIcon,
+  FolderIcon,
+  FolderPlusIcon,
+  PencilIcon,
+  PlusIcon,
+} from "lucide-react";
 
+import { BackupModal } from "@/components/backup/backup-modal";
 import { getRawId, identifierUniqueKey } from "@/data/models/identifier/utilities";
 import { CustomItem, Item as ItemType } from "@/data/models/types";
 import { useFuzzySearch } from "@/hooks/use-fuzzy-search";
@@ -121,6 +129,7 @@ export const ItemsSection = ({
   const [activeAddonGroup, setActiveAddonGroup] = useState<string | null>(null);
   const [editingAddonGroup, setEditingAddonGroup] = useState<string | null>(null);
   const [targetAddGroup, setTargetAddGroup] = useState<string | undefined>(undefined);
+  const [exportingGroup, setExportingGroup] = useState<string | null>(null);
 
   const termSingular = minecraftVersion === "bedrock" ? "Addon" : "Mod";
   const termPlural = minecraftVersion === "bedrock" ? "Addons" : "Mods";
@@ -312,18 +321,36 @@ export const ItemsSection = ({
             )}
           </div>
 
-          <button
-            type="button"
-            className="border-border text-foreground hover:bg-accent flex cursor-pointer items-center gap-1 rounded-md border px-2 py-0.5 text-xs transition-colors"
-            onClick={() => {
-              setTargetAddGroup(activeAddonGroup);
-              onOpenAddItemForm?.();
-            }}
-          >
-            <PlusIcon size={12} />
-            Add Item
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              className="border-border text-foreground hover:bg-accent flex cursor-pointer items-center gap-1 rounded-md border px-2 py-0.5 text-xs transition-colors"
+              onClick={() => setExportingGroup(activeAddonGroup)}
+              title={`Export ${activeAddonGroup} ${termSingular}`}
+            >
+              <DownloadIcon size={12} />
+              <span>Export</span>
+            </button>
+
+            <button
+              type="button"
+              className="border-border text-foreground hover:bg-accent flex cursor-pointer items-center gap-1 rounded-md border px-2 py-0.5 text-xs transition-colors"
+              onClick={() => {
+                setTargetAddGroup(activeAddonGroup);
+                onOpenAddItemForm?.();
+              }}
+            >
+              <PlusIcon size={12} />
+              Add Item
+            </button>
+          </div>
         </div>
+
+        <BackupModal
+          open={Boolean(exportingGroup)}
+          initialGroup={exportingGroup ?? undefined}
+          onClose={() => setExportingGroup(null)}
+        />
 
         <InventoryGridContainer className="max-h-36 flex-none shrink-0">
           {activeAddonItems.length === 0 ? (

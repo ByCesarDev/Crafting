@@ -6,6 +6,8 @@ import { useCustomItemStore } from "@/stores/custom-item";
 import { useSettingsStore } from "@/stores/settings";
 import { selectMinecraftVersion } from "@/stores/settings/selectors";
 
+import { DeleteAddonModal } from "./delete-addon-modal";
+
 interface EditAddonFormProps {
   groupName: string;
   onClose: () => void;
@@ -16,10 +18,15 @@ interface EditAddonFormProps {
 export const EditAddonForm = ({ groupName, onClose, onRenamed, onDeleted }: EditAddonFormProps) => {
   const minecraftVersion = useSettingsStore(selectMinecraftVersion);
   const renameCustomItemGroup = useCustomItemStore((state) => state.renameCustomItemGroup);
-  const deleteCustomItemGroup = useCustomItemStore((state) => state.deleteCustomItemGroup);
+  const customItems = useCustomItemStore((state) => state.customItems);
 
   const term = minecraftVersion === "bedrock" ? "Addon" : "Mod";
   const [name, setName] = useState(groupName);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const itemsInGroup = customItems.filter(
+    (item) => (item.group?.trim() || "General").toLowerCase() === groupName.toLowerCase(),
+  );
 
   const handleSave = () => {
     const trimmed = name.trim();
@@ -31,10 +38,8 @@ export const EditAddonForm = ({ groupName, onClose, onRenamed, onDeleted }: Edit
     onClose();
   };
 
-  const handleDelete = () => {
-    deleteCustomItemGroup(groupName);
-    onDeleted();
-    onClose();
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
   };
 
   return (
@@ -57,7 +62,7 @@ export const EditAddonForm = ({ groupName, onClose, onRenamed, onDeleted }: Edit
         <button
           type="button"
           className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-xs transition-colors"
-          onClick={handleDelete}
+          onClick={handleDeleteClick}
         >
           <Trash2Icon size={13} />
           <span>Delete Folder</span>
@@ -91,6 +96,18 @@ export const EditAddonForm = ({ groupName, onClose, onRenamed, onDeleted }: Edit
           Save Changes
         </button>
       </div>
+
+      <DeleteAddonModal
+        open={showDeleteModal}
+        groupName={groupName}
+        itemCount={itemsInGroup.length}
+        termSingular={term}
+        onClose={() => setShowDeleteModal(false)}
+        onDeleted={() => {
+          onDeleted();
+          onClose();
+        }}
+      />
     </div>
   );
 };

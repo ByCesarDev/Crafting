@@ -19,12 +19,33 @@ type TagActions = {
   removeTag: (uid: string) => void;
   addValueToTag: (uid: string, value: TagValue) => boolean;
   removeValueFromTagByIndex: (uid: string, index: number) => boolean;
+  importTags: (newTags?: Tag[]) => number;
 };
 
 export const useTagStore = create<TagState & TagActions>()(
   persist(
     immer((set, get) => ({
       tags: [],
+
+      importTags: (newTags) => {
+        let importedCount = 0;
+        if (!Array.isArray(newTags)) return 0;
+
+        set((state) => {
+          for (const tag of newTags) {
+            if (!tag || !tag.id) continue;
+            const exists = state.tags.some(
+              (existing) => existing.uid === tag.uid || existing.id === tag.id,
+            );
+            if (!exists) {
+              state.tags.push(tag);
+              importedCount++;
+            }
+          }
+        });
+
+        return importedCount;
+      },
 
       createTag: (initial) => {
         const existingTags = get().tags;
