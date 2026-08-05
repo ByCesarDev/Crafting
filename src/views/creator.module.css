@@ -113,7 +113,6 @@
     grid-template-columns: minmax(0, 1fr) var(--items-panel-width-md);
     grid-template-rows: auto;
     height: auto;
-    min-height: calc(100svh - var(--app-header-height));
   }
 
   .content-column {
@@ -124,12 +123,16 @@
   .items-column {
     @apply sticky top-4 mx-0 min-h-0 w-auto self-start overflow-hidden rounded-none border-0 bg-transparent shadow-none;
     height: calc(100svh - var(--app-header-height) - 2rem);
+    inset: auto;
+    z-index: auto;
+    transform: none !important;
   }
 
   .items-column-collapsed,
   .items-column-expanded,
   .items-column-full {
     @apply max-h-none transition-none;
+    transform: none !important;
   }
 
   .tray-toggle {
