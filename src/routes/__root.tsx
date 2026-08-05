@@ -11,6 +11,7 @@ const siteUrl = (import.meta.env.VITE_SITE_URL ?? "https://crafting.thedestruc7i
   /\/$/,
   "",
 );
+const base = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
 const themeScript = `
 (() => {
   try {
@@ -39,18 +40,18 @@ export const Route = createRootRoute({
       { property: "twitter:image", content: `${siteUrl}/icons/icon-512.png` },
     ],
     links: [
-      { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
-      { rel: "icon", type: "image/png", href: "/icons/icon-192.png" },
-      { rel: "apple-touch-icon", href: "/icons/icon-192.png" },
-      { rel: "manifest", href: "/manifest.json" },
+      { rel: "icon", type: "image/x-icon", href: `${base}/favicon.ico` },
+      { rel: "icon", type: "image/png", href: `${base}/icons/icon-192.png` },
+      { rel: "apple-touch-icon", href: `${base}/icons/icon-192.png` },
+      { rel: "manifest", href: `${base}/manifest.json` },
       {
         rel: "preload",
-        href: "/fonts/Minecraft.woff",
+        href: `${base}/fonts/Minecraft.woff`,
         as: "font",
         type: "font/woff",
         crossOrigin: "anonymous",
       },
-      { rel: "stylesheet", href: "/fonts/minecraft-font.css" },
+      { rel: "stylesheet", href: `${base}/fonts/minecraft-font.css` },
     ],
   }),
   component: RootRoute,

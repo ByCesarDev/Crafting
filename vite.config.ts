@@ -9,12 +9,14 @@ import { defineConfig } from "vitest/config";
 import { minecraftTextures } from "./vite/minecraft-textures";
 
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
-const siteUrl = (process.env.VITE_SITE_URL ?? "https://crafting.thedestruc7i0n.ca").replace(
+const siteUrl = (process.env.VITE_SITE_URL ?? "https://bycesardev.github.io/Crafting/").replace(
   /\/$/,
   "",
 );
+const basePath = process.env.BASE_PATH ?? "/";
 
 export default defineConfig({
+  base: basePath,
   build: {
     target: "es2020",
   },

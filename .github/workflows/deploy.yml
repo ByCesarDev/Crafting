@@ -39,6 +39,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build project
+        env:
+          BASE_PATH: /Crafting/
         run: pnpm build
 
       - name: Upload artifact
